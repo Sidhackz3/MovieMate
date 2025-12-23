@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="32" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256">
+    <defs>
+        <linearGradient id="redGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" stop-color="#FF2D2D"></stop>
+            <stop offset="50%" stop-color="#D00000"></stop>
+            <stop offset="100%" stop-color="#9D0000"></stop>
+        </linearGradient>
+        <linearGradient id="filmStrip" x1="0%" x2="0%" y1="0%" y2="100%">
+            <stop offset="0%" stop-color="#B80000"></stop>
+            <stop offset="100%" stop-color="#7A0000"></stop>
+        </linearGradient>
+    </defs>
+
+    <!-- Main rounded square background -->
+    <rect width="256" height="256" rx="50" ry="50" fill="url(#redGradient)"></rect>
+
+    <!-- Film strip perforations on sides -->
+    <rect x="10" y="30" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="10" y="70" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="10" y="110" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="10" y="150" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="10" y="190" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+
+    <rect x="231" y="30" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="231" y="70" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="231" y="110" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="231" y="150" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+    <rect x="231" y="190" width="15" height="20" rx="3" fill="url(#filmStrip)" opacity="0.3"></rect>
+
+    <!-- S9 Text -->
+    <text x="128" y="145" font-family="Arial, Helvetica, sans-serif" font-size="130" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle" letter-spacing="-5">S9</text>
+</svg>

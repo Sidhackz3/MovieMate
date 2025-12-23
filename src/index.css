@@ -1,0 +1,253 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+
+@layer base {
+    * {
+        border-color: #2A2D35;
+    }
+
+    body {
+        @apply bg-base-900 text-text font-sans antialiased;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+
+    /* Optimize rendering: text first, images later */
+    img {
+        content-visibility: auto;
+    }
+
+    /* Ensure text is always visible immediately */
+    h1, h2, h3, h4, h5, h6, p, span, a {
+        content-visibility: visible;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-surface;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-surface-border rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-cinema-red/50;
+    }
+}
+
+@layer components {
+    /* Button Styles - Clean & Minimal */
+    .btn-primary {
+        @apply bg-cinema-red text-white px-5 py-3 rounded font-medium text-sm transition-colors hover:bg-cinema-red-dark focus:outline-none focus:ring-2 focus:ring-cinema-red/50 min-h-[44px];
+    }
+
+    .btn-secondary {
+        @apply bg-surface-light text-white border border-surface-border px-5 py-3 rounded font-medium text-sm transition-colors hover:bg-surface-lighter hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[44px];
+    }
+
+    .btn-ghost {
+        @apply bg-transparent text-white/80 px-5 py-3 rounded font-medium text-sm transition-colors hover:bg-surface-light hover:text-white focus:outline-none min-h-[44px];
+    }
+
+    .btn-gold {
+        @apply bg-cinema-gold text-base-900 px-5 py-3 rounded font-medium text-sm transition-colors hover:bg-cinema-gold-dark focus:outline-none focus:ring-2 focus:ring-cinema-gold/50 min-h-[44px];
+    }
+
+    /* Input Styles - Clean */
+    .input-field {
+        @apply w-full px-4 py-3 text-sm bg-surface-light border border-surface-border text-text placeholder-text-dim rounded focus:outline-none focus:ring-2 focus:ring-cinema-red/50 focus:border-cinema-red transition-colors min-h-[44px];
+    }
+
+    /* Card Styles - Minimal */
+    .card {
+        @apply bg-surface border border-surface-border rounded p-4 sm:p-6;
+    }
+
+    .card-hover {
+        @apply card hover:border-text/20 transition-colors;
+    }
+
+    .card-glass {
+        @apply bg-surface/80 border border-surface-border/50 rounded p-4 sm:p-6 backdrop-blur-sm;
+    }
+
+    /* Text Styles */
+    .text-heading {
+        @apply text-text font-semibold tracking-tight;
+    }
+
+    .text-body {
+        @apply text-text-muted leading-relaxed;
+    }
+
+    .text-muted {
+        @apply text-text-dim;
+    }
+
+    /* Divider */
+    .divider {
+        @apply border-t border-surface-border;
+    }
+
+    /* Seat Styles - Clean */
+    .seat-available {
+        @apply bg-surface-light border-2 border-surface-border text-text hover:bg-surface-lighter hover:border-text/30 cursor-pointer transition-colors rounded;
+    }
+
+    .seat-selected {
+        @apply bg-cinema-red border-2 border-cinema-red text-white rounded font-medium;
+    }
+
+    .seat-occupied {
+        @apply bg-surface border-2 border-surface-border text-text-dim/30 cursor-not-allowed rounded opacity-50;
+    }
+
+    /* Badge Styles */
+    .badge {
+        @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+    }
+
+    .badge-success {
+        @apply badge bg-success/10 text-success border border-success/20;
+    }
+
+    .badge-warning {
+        @apply badge bg-warning/10 text-warning border border-warning/20;
+    }
+
+    .badge-danger {
+        @apply badge bg-danger/10 text-danger border border-danger/20;
+    }
+
+    .badge-info {
+        @apply badge bg-info/10 text-info border border-info/20;
+    }
+
+    /* Loading Skeleton */
+    .skeleton {
+        @apply bg-surface-light animate-pulse rounded-lg;
+    }
+
+    /* Glassmorphism Effect */
+    .glass {
+        @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl;
+    }
+
+    /* Gradient Text */
+    .gradient-text {
+        @apply bg-gradient-to-r from-cinema-red via-cinema-gold to-cinema-red bg-clip-text text-transparent;
+    }
+
+    /* Screen Element for Theater */
+    .theater-screen {
+        @apply relative h-2 rounded-t-full bg-gradient-to-b from-white/20 to-white/5 shadow-[0_-5px_20px_rgba(255,255,255,0.1)];
+    }
+
+    .theater-screen::before {
+        content: "";
+        @apply absolute inset-0 rounded-t-full shadow-[inset_0_2px_10px_rgba(255,255,255,0.2)];
+    }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    /* Animation Utilities */
+    .animate-pulse-subtle {
+        animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-subtle {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    /* Backdrop Blur Utilities */
+    .backdrop-blur-cinema {
+        backdrop-filter: blur(20px) saturate(180%);
+    }
+
+    /* Gradient Borders */
+    .border-gradient {
+        border: 1px solid transparent;
+        background: linear-gradient(#12141A, #12141A) padding-box,
+                    linear-gradient(90deg, rgba(230, 57, 70, 0.5), rgba(255, 183, 3, 0.5)) border-box;
+    }
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Loading state */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Remove default focus styles for custom focus rings */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+/* Ensure images load smoothly */
+img {
+    @apply transition-opacity duration-300;
+}
+
+img[data-loaded="false"] {
+    @apply opacity-0;
+}
+
+img[data-loaded="true"] {
+    @apply opacity-100;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}

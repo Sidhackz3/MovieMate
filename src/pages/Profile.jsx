@@ -1,0 +1,494 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Ticket,
+  Loader2,
+  AlertCircle,
+  Edit,
+  Save,
+  X,
+  CreditCard,
+  Download,
+  Eye,
+  RefreshCw,
+  Heart,
+  Star,
+  Film,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { fetchAllBookings, updateProfile } from "../utils/backendApi";
+import { getImageUrl } from "../utils/api";
+
+const Profile = () => {
+  const { user, isAuthenticated, updateUser: updateAuthUser, favorites: userFavorites, removeFromFavorites } = useAuth();
+  const navigate = useNavigate();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+  });
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [showAllFavorites, setShowAllFavorites] = useState(false);
+  const [showAllBookings, setShowAllBookings] = useState(false);
+
+  // Limits for display
+  const FAVORITES_LIMIT = 6;
+  const BOOKINGS_LIMIT = 3;
+
+  // Get displayed items based on show all state
+  const displayedFavorites = showAllFavorites
+    ? userFavorites
+    : userFavorites?.slice(0, FAVORITES_LIMIT);
+
+  const displayedBookings = showAllBookings
+    ? bookings
+    : bookings.slice(0, BOOKINGS_LIMIT);
+
+  // Update timer every second for pending bookings
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fetch bookings function (can be called multiple times)
+  const fetchBookings = async () => {
+    if (!user?.email) return;
+
+    try {
+      setLoading(true);
+      // Fetch bookings for the logged-in user's email
+      const data = await fetchAllBookings({ email: user.email });
+      console.log(`✅ Loaded ${data.length} booking(s) for ${user.email}`);
+      setBookings(data || []);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("❌ Failed to fetch bookings:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Fetch bookings on mount only
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/");
+      return;
+    }
+
+    if (user?.email) {
+      fetchBookings();
+    }
+  }, [isAuthenticated, navigate, user?.email]);
+
+  // Auto-refresh every 30 seconds (instead of on every focus)
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Auto-refreshing bookings (30s interval)...');
+      fetchBookings();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(refreshInterval);
+  }, [user?.email]);
+
+  // Listen for favorites updates
+  useEffect(() => {
+    const handleFavoritesUpdate = () => {
+      // Favorites will automatically update from AuthContext
+      console.log("🔔 Favorites updated event received");
+    };
+
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+    return () => window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
+  }, []);
+
+
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdateProfile = async () => {
+    setUpdateLoading(true);
+    try {
+      const updatedUser = await updateProfile(editForm);
+      updateAuthUser(updatedUser);
+      setIsEditing(false);
+    } catch (err) {
+      alert(err.message || "Failed to update profile");
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatTime = (timeString) => {
+    return timeString;
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getTimeRemaining = (lockedUntil) => {
+    if (!lockedUntil) return null;
+    const expiry = new Date(lockedUntil);
+    const diff = expiry - currentTime;
+
+    if (diff <= 0) return "Expired";
+
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const handleCompletePayment = (booking) => {
+    // Store booking data and navigate to payment
+    localStorage.setItem("currentBooking", JSON.stringify(booking));
+    navigate("/payment");
+  };
+
+  const handleViewTicket = (booking) => {
+    navigate("/confirmation", { state: { booking } });
+  };
+
+  const handleRetry = (booking) => {
+    // Navigate back to booking page with pre-selected seats
+    navigate(`/movie/${booking.movieId._id || booking.movieId}`);
+  };
+
+  const handleRemoveFavorite = async (e, movieId) => {
+    e.stopPropagation(); // Prevent navigation to movie detail
+    try {
+      await removeFromFavorites(movieId);
+      console.log("✅ Removed from favorites:", movieId);
+    } catch (error) {
+      console.error("❌ Failed to remove favorite:", error);
+      alert("Failed to remove from favorites");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-base-900 grid place-items-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-cinema-red mx-auto mb-4" />
+          <p className="text-text-muted">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-base-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+
+        {/* Profile Header */}
+        <div className="pb-6 border-b border-surface-border/50 mb-6">
+          <div className="flex flex-col sm:flex-row items-start justify-between mb-6 gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-text mb-1">My Profile</h1>
+              <p className="text-sm text-text-muted">Manage your account</p>
+            </div>
+            {!isEditing ? (
+              <button onClick={() => setIsEditing(true)} className="btn-secondary flex items-center gap-2">
+                <Edit className="w-4 h-4" />
+                <span>Edit</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={handleUpdateProfile} disabled={updateLoading} className="btn-primary flex items-center gap-2">
+                  <Save className="w-4 h-4" />
+                  <span>Save</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditForm({ name: user?.name || "", phone: user?.phone || "" });
+                  }}
+                  className="btn-ghost flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Cancel</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-xs text-text-dim mb-1">Name</p>
+              {isEditing ? (
+                <input type="text" name="name" value={editForm.name} onChange={handleEditChange} className="input-field" placeholder="Your name" />
+              ) : (
+                <p className="font-medium text-text">{user?.name}</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-xs text-text-dim mb-1">Email</p>
+              <p className="font-medium text-text truncate">{user?.email}</p>
+            </div>
+
+            <div>
+              <p className="text-xs text-text-dim mb-1">Phone</p>
+              {isEditing ? (
+                <input type="tel" name="phone" value={editForm.phone} onChange={handleEditChange} className="input-field" placeholder="Your phone" />
+              ) : (
+                <p className="font-medium text-text">{user?.phone}</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-xs text-text-dim mb-1">Total Bookings</p>
+              <p className="font-medium text-text">{bookings.length}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Favorites Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-semibold text-text">My Favorites</h2>
+            {userFavorites && userFavorites.length > FAVORITES_LIMIT && (
+              <button
+                onClick={() => setShowAllFavorites(!showAllFavorites)}
+                className="btn-ghost text-sm flex items-center gap-2"
+              >
+                <span>{showAllFavorites ? 'Show Less' : `View All (${userFavorites.length})`}</span>
+              </button>
+            )}
+          </div>
+
+          {!userFavorites ? (
+            <div className="text-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-cinema-red mx-auto mb-2" />
+              <p className="text-sm text-text-muted">Loading favorites...</p>
+            </div>
+          ) : userFavorites.length === 0 ? (
+            <div className="text-center py-8">
+              <Heart className="h-8 w-8 mx-auto mb-2 text-text-dim" />
+              <p className="text-sm text-text-muted">No favorite movies yet</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+              {displayedFavorites.map((movie) => (
+                <button
+                  key={movie._id || movie.id}
+                  onClick={() => navigate(`/movie/${movie._id || movie.id}`)}
+                  className="text-left group"
+                >
+                  <div className="aspect-[2/3] rounded overflow-hidden bg-surface-light border border-white/10 group-hover:border-white/30 transition-all relative">
+                    {movie.posterUrl || movie.posterPath ? (
+                      <img
+                        src={getImageUrl(movie.posterUrl || movie.posterPath, "poster", "medium")}
+                        alt={movie.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full grid place-items-center text-white/30">
+                        <Film className="w-8 h-8" />
+                      </div>
+                    )}
+                    <button
+                      onClick={(e) => handleRemoveFavorite(e, movie._id || movie.id)}
+                      className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full p-1.5 hover:bg-black/80 transition-colors z-10"
+                      title="Remove from favorites"
+                    >
+                      <Heart className="w-3.5 h-3.5 fill-current text-cinema-red" />
+                    </button>
+                  </div>
+                  <h3 className="mt-2 text-xs sm:text-sm font-medium line-clamp-2 text-white/90 group-hover:text-white">
+                    {movie.title}
+                  </h3>
+                  {movie.rating && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-white/70">
+                      <Star className="w-3 h-3 fill-current text-cinema-gold" />
+                      <span>{movie.rating.toFixed(1)}</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Bookings Section */}
+        <div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-semibold text-text">My Bookings</h2>
+              {lastUpdated && (
+                <p className="text-xs text-text-dim mt-0.5">
+                  Updated {lastUpdated.toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {bookings.length > BOOKINGS_LIMIT && (
+                <button
+                  onClick={() => setShowAllBookings(!showAllBookings)}
+                  className="btn-ghost text-sm flex items-center gap-2"
+                >
+                  <span>{showAllBookings ? 'Show Less' : `View All (${bookings.length})`}</span>
+                </button>
+              )}
+              <button onClick={fetchBookings} disabled={loading} className="btn-secondary flex items-center gap-2">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          {error ? (
+            <div className="text-center py-12">
+              <AlertCircle className="mx-auto h-10 w-10 text-text-dim mb-3" />
+              <h3 className="text-base font-medium text-text mb-1">Failed to load bookings</h3>
+              <p className="text-sm text-text-muted">{error}</p>
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className="text-center py-12">
+              <Ticket className="h-10 w-10 mx-auto mb-3 text-text-dim" />
+              <h3 className="text-base font-medium text-text mb-1">No bookings yet</h3>
+              <p className="text-sm text-text-muted mb-4">Start booking your favorite movies now!</p>
+              <button onClick={() => navigate("/")} className="btn-primary">Browse Movies</button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {displayedBookings.map((booking) => {
+                const timeRemaining = booking.status === "pending" ? getTimeRemaining(booking.lockedUntil) : null;
+                const isExpired = timeRemaining === "Expired";
+
+                return (
+                  <div key={booking._id} className="border border-surface-border/50 rounded p-4 hover:border-text/20 transition-colors">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      {/* Poster */}
+                      <div className="flex-shrink-0">
+                        {(booking.movieId?.posterUrl || booking.movieId?.posterPath || booking.movie?.posterUrl || booking.movie?.poster_path) ? (
+                          <img
+                            src={
+                              booking.movieId?.posterUrl ||
+                              booking.movie?.posterUrl ||
+                              getImageUrl(
+                                booking.movieId?.posterPath || booking.movie?.poster_path,
+                                "poster",
+                                "small"
+                              )
+                            }
+                            alt={booking.movieId?.title || booking.movie?.title}
+                            className="w-16 h-24 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="w-16 h-24 flex items-center justify-center bg-surface-light rounded"
+                          style={{ display: (booking.movieId?.posterUrl || booking.movieId?.posterPath || booking.movie?.posterUrl || booking.movie?.poster_path) ? 'none' : 'flex' }}
+                        >
+                          <Ticket className="h-6 w-6 text-text-dim" />
+                        </div>
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-text truncate">{booking.movieId?.title || "Movie"}</h3>
+                            <p className="text-xs text-text-dim mt-0.5">ID: {booking.bookingId}</p>
+                          </div>
+                          <span className={`ml-2 px-2 py-1 text-xs font-medium rounded ${getStatusColor(booking.status)}`}>
+                            {booking.status?.toUpperCase()}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-3">
+                          <div>
+                            <p className="text-xs text-text-dim">Date</p>
+                            <p className="text-text">{formatDate(booking.showtime?.date)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-text-dim">Time</p>
+                            <p className="text-text">{formatTime(booking.showtime?.time)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-text-dim">Seats</p>
+                            <p className="text-text truncate">{booking.seats?.map((s) => s.seatId).join(", ")}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-text-dim">Total</p>
+                            <p className="text-text font-medium">₹{booking.totalAmount?.toFixed(2)}</p>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2">
+                          {booking.status === "confirmed" && (
+                            <>
+                              <button onClick={() => handleViewTicket(booking)} className="btn-secondary text-xs py-2 px-3">
+                                <Eye className="w-3 h-3 inline mr-1" />
+                                View
+                              </button>
+                              <button onClick={() => alert("Download coming soon")} className="btn-ghost text-xs py-2 px-3">
+                                <Download className="w-3 h-3 inline mr-1" />
+                                Download
+                              </button>
+                            </>
+                          )}
+                          {booking.status === "pending" && !isExpired && (
+                            <button onClick={() => handleCompletePayment(booking)} className="btn-primary text-xs py-2 px-3">
+                              <CreditCard className="w-3 h-3 inline mr-1" />
+                              Complete Payment
+                            </button>
+                          )}
+                          {(booking.status === "cancelled" || isExpired) && (
+                            <button onClick={() => handleRetry(booking)} className="btn-secondary text-xs py-2 px-3">
+                              <RefreshCw className="w-3 h-3 inline mr-1" />
+                              Book Again
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;
