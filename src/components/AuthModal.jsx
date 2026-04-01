@@ -190,7 +190,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                     onChange={handleRegisterChange}
                     required
                     className="input-field pl-10"
-                    placeholder="Abhay Sharma"
+                    placeholder="Abhijeet Prajapati"
                   />
                 </div>
               </div>

@@ -3,7 +3,8 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
 // API Key from environment
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || "your_api_key_here";
+//const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || "148216b5ba10ef45e09845d6ba923bed";
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 // Image size configurations
 export const IMAGE_SIZES = {

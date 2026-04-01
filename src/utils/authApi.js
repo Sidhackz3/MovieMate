@@ -13,7 +13,8 @@ const getAuthHeaders = () => {
 // Helper function for API requests
 const apiRequest = async (endpoint, options = {}) => {
   try {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_BASE_URL}/api${endpoint}`;  // ✅ FIXED
+    console.log("FINAL URL:", url); // debug
     const config = {
       headers: getAuthHeaders(),
       ...options,

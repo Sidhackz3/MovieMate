@@ -124,7 +124,7 @@ const Header = ({ showSearch = true }) => {
                             </div>
                             <div>
                                 <span className="text-base font-bold text-white tracking-tight block">AP</span>
-                                <span className="text-[10px] text-white/40 uppercase tracking-wider -mt-0.5 block">Moviemania</span>
+                                <span className="text-[10px] text-white/40 uppercase tracking-wider -mt-0.5 block">MovieMate</span>
                             </div>
                         </Link>
 

@@ -40,7 +40,7 @@ const Home = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalMovies, setTotalMovies] = useState(0);
-    const [useBackend, setUseBackend] = useState(true);
+    const [useBackend, setUseBackend] = useState(false);
     const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
     const [pageLoading, setPageLoading] = useState(false);
     const [heroMovies, setHeroMovies] = useState([]);
@@ -68,7 +68,10 @@ const Home = () => {
     useEffect(() => {
         const checkBackend = async () => {
             const isAvailable = await checkBackendHealth();
-            setUseBackend(isAvailable);
+            setUseBackend((prev) => {
+    if (prev === isAvailable) return prev; // ✅ no unnecessary re-render
+    return isAvailable;
+    });
             if (isAvailable) {
                 console.log("✓ Using backend API for movies");
             } else {
@@ -103,6 +106,7 @@ const Home = () => {
                     };
 
                     const backendResponse = await fetchMoviesFromBackend(params);
+                    console.log("BACKEND RESPONSE:", backendResponse);
 
                     if (backendResponse && typeof backendResponse === "object") {
                         if (Array.isArray(backendResponse.movies)) {
@@ -176,7 +180,7 @@ const Home = () => {
 
         loadMovies();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTab, debouncedSearchQuery, currentPage, useBackend]);
+    }, [activeTab, debouncedSearchQuery, currentPage]);
 
 
     // Apply genre filter

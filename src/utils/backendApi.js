@@ -1,6 +1,5 @@
 // Backend API integration for movie booking
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -14,7 +13,8 @@ const getAuthHeaders = () => {
 // Helper function for API requests
 const apiRequest = async (endpoint, options = {}) => {
   try {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_BASE_URL}/api${endpoint}`;  // ✅ FIXED
+    console.log("FINAL URL:", url); // debug
     const config = {
       ...options,
       headers: {
@@ -631,14 +631,14 @@ export const formatShowtime = (showtime) => {
  * @param {number} limit - Number of similar movies to fetch
  * @returns {Promise<Array>} Array of similar movies
  */
-export const fetchSimilarMoviesByGenre = async (movieId, genres, limit = 12) => {
+export const fetchSimilarMoviesByGenre = async (movieId, genres, limit = 16) => {
   try {
     if (!genres || genres.length === 0) {
       return [];
     }
 
     // Fetch movies with matching genres
-    const allMovies = await fetchMoviesFromBackend({ limit: 100 });
+    const allMovies = await fetchMoviesFromBackend({ limit: 200 });
 
     // Filter out current movie and find movies with matching genres
     const similarMovies = allMovies
@@ -668,8 +668,8 @@ export const fetchSimilarMoviesByGenre = async (movieId, genres, limit = 12) => 
  */
 export const fetchSimilarMoviesByGenreGroups = async (movieId, genres) => {
   try {
-    const topGenres = genres.slice(0, 3); // Take top 3 genres
-    const response = await fetchMoviesFromBackend({ limit: 100 });
+    const topGenres = genres.slice(0, 5); // Take top 3 genres
+    const response = await fetchMoviesFromBackend({ limit: 200 });
     const allMovies = response.movies || []; // Extract movies array from response
     const genreGroups = {};
 
@@ -679,7 +679,7 @@ export const fetchSimilarMoviesByGenreGroups = async (movieId, genres) => {
           movie._id !== movieId &&
           movie.genres?.includes(genre)
         )
-        .slice(0, 6)
+        .slice(0, 10)
         .map(formatBackendMovie);
 
       if (moviesInGenre.length > 0) {
